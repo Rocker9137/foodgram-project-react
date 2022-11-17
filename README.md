@@ -26,7 +26,7 @@
 1. Склонируйте репозиторий на локальную машину.
 
     ```
-    git clone git@github.com:avagners/foodgram-project-react.git
+    git clone git@github.com:Rocker9137/foodgram-project-react.git
     ```
 
 2. Создайте .env файл в директории backend/foodgram/, в котором должны содержаться следующие переменные для подключения к базе PostgreSQL:
@@ -42,24 +42,24 @@
 
 3. Перейдите в директорию infra/ и выполните команду для создания и запуска контейнеров.
     ```
-    sudo docker compose up -d --build
+    sudo docker-compose up -d --build
     ```
-> Возможна команда **$ sudo docker-compose up -d --build** (зависит от версии docker compose)
+> Возможна команда **$ sudo docker compose up -d --build** (зависит от версии docker compose)
 
 > В Windows команда выполняется без **sudo**
 
 4. В контейнере backend выполните миграции, создайте суперпользователя и соберите статику.
 
     ```
-    sudo docker compose exec backend python manage.py migrate
-    sudo docker compose exec backend python manage.py createsuperuser
-    sudo docker compose exec backend python manage.py collectstatic --no-input 
+    sudo docker-compose exec backend python manage.py migrate
+    sudo docker-compose exec backend python manage.py createsuperuser
+    sudo docker-compose exec backend python manage.py collectstatic --no-input 
     ```
 
 5. Загрузите в бд ингредиенты командой ниже.
 
     ```
-    sudo docker compose exec backend python manage.py load_ingredients
+    sudo docker-compose exec backend python manage.py load_ingredients
     ```
 
 6. Готово! Ниже представлены доступные адреса проекта:
