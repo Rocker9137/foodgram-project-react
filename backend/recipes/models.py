@@ -42,52 +42,7 @@ class Tag(models.Model):
         return self.name
 
 
-class Recipe(models.Model):
-    name = models.CharField('Название', db_index=True, max_length=50)
-    author = models.ForeignKey(
-        User,
-        related_name='recipes',
-        on_delete=models.CASCADE,
-        null=True,
-        verbose_name='Автор',
-    )
-    text = models.TextField('Описание')
-    image = models.ImageField(
-        'Изображение',
-        upload_to='recipes/'
-    )
-    cooking_time = models.PositiveSmallIntegerField(
-        'Время приготовления',
-        validators=[MinValueValidator(1, message='Минимальное значение 1!')]
-    )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        through='IngredientInRecipe',
-        related_name='recipes',
-        verbose_name='Ингредиенты'
-    )
-    tags = models.ManyToManyField(
-        Tag,
-        related_name='recipes',
-        verbose_name='Теги'
-    )
-
-    class Meta:
-        ordering = ['-id']
-        verbose_name = 'Рецепт'
-        verbose_name_plural = 'Рецепты'
-
-    def __str__(self):
-        return self.name
-
-
 class IngredientInRecipe(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='ingredient_list',
-        verbose_name='Рецепт',
-    )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
@@ -107,6 +62,45 @@ class IngredientInRecipe(models.Model):
             f'{self.ingredient.name} ({self.ingredient.measurement_unit})'
             f' - {self.amount} '
         )
+
+
+class Recipe(models.Model):
+    name = models.CharField('Название', db_index=True, max_length=50)
+    author = models.ForeignKey(
+        User,
+        related_name='recipes',
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name='Автор',
+    )
+    text = models.TextField('Описание')
+    image = models.ImageField(
+        'Изображение',
+        upload_to='recipes/'
+    )
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления',
+        validators=[MinValueValidator(1, message='Минимальное значение 1!')]
+    )
+    ingredients = models.ManyToManyField(
+        IngredientInRecipe,
+        through='IngredientInRecipe',
+        related_name='recipes',
+        verbose_name='Ингредиенты'
+    )
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        verbose_name='Теги'
+    )
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
+        return self.name
 
 
 class Favourite(models.Model):
