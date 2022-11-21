@@ -185,13 +185,12 @@ class RecipeWriteSerializer(ModelSerializer):
         )
 
     def validate_ingredients(self, value):
-        ingredients = value
-        if not ingredients:
+        if not value:
             raise ValidationError({
                 'ingredients': 'Нужен хотя бы один ингредиент!'
             })
         ingredients_list = []
-        for item in ingredients:
+        for item in value:
             ingredient = get_object_or_404(Ingredient, id=item['id'])
             if ingredient in ingredients_list:
                 raise ValidationError({
@@ -205,13 +204,12 @@ class RecipeWriteSerializer(ModelSerializer):
         return value
 
     def validate_tags(self, value):
-        tags = value
-        if not tags:
+        if not value:
             raise ValidationError({
                 'tags': 'Нужно выбрать хотя бы один тег!'
             })
         tags_list = []
-        for tag in tags:
+        for tag in value:
             if tag in tags_list:
                 raise ValidationError({
                     'tags': 'Теги должны быть уникальными!'
