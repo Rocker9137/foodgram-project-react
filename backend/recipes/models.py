@@ -61,7 +61,7 @@ class Recipe(models.Model):
         validators=[MinValueValidator(1, message='Минимальное значение 1!')]
     )
     ingredients = models.ManyToManyField(
-        'IngredientInRecip',
+        IngredientInRecip,
         #through='IngredientInRecipe',
         related_name='recipes',
         verbose_name='Ингредиенты'
