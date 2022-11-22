@@ -110,10 +110,18 @@ class TagSerializer(ModelSerializer):
         )
 
 
+class IngredientInRecipeWriteSerializer(ModelSerializer):
+    id = IntegerField(write_only=True)
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'amount')
+
+
 class RecipeReadSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = SerializerMethodField()
+    ingredients = IngredientInRecipeWriteSerializer()
     image = Base64ImageField()
     is_favorited = SerializerMethodField(read_only=True)
     is_in_shopping_cart = SerializerMethodField(read_only=True)
@@ -154,14 +162,6 @@ class RecipeReadSerializer(ModelSerializer):
         if user.is_anonymous:
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
-
-
-class IngredientInRecipeWriteSerializer(ModelSerializer):
-    id = IntegerField(write_only=True)
-
-    class Meta:
-        model = IngredientInRecipe
-        fields = ('id', 'amount')
 
 
 class RecipeWriteSerializer(ModelSerializer):
