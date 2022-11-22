@@ -111,11 +111,25 @@ class TagSerializer(ModelSerializer):
 
 
 class IngredientInRecipeWriteSerializer(ModelSerializer):
-    id = IntegerField(write_only=True)
+    id = PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
+    name = SerializerMethodField(read_only=True)
+    measurement_unit = SerializerMethodField(read_only=True)
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
+
+    def _get_ingredient(self, ingredient_id):
+        return get_object_or_404(Ingredient, id=ingredient_id)
+
+    def get_name(self, amount):
+        return self._get_ingredient(amount.ingredient.id).name
+
+    def get_measurement_unit(self, amount):
+        return self._get_ingredient(amount.ingredient.id).measurement_unit
 
 
 class RecipeReadSerializer(ModelSerializer):
@@ -141,15 +155,15 @@ class RecipeReadSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    #def get_ingredients(self, obj):
-        #recipe = obj
-        #ingredients = recipe.ingredients.values(
-            #'id',
-            #'name',
-            #'measurement_unit',
-            #amount=F('ingredientinrecipe__amount')
-        #)
-        #return ingredients
+    def get_ingredients(self, obj):
+        recipe = obj
+        ingredients = recipe.ingredients.values(
+            'id',
+            'name',
+            'measurement_unit',
+            amount=F('ingredientinrecipe__amount')
+        )
+        return ingredients
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
@@ -218,14 +232,13 @@ class RecipeWriteSerializer(ModelSerializer):
         return value
 
     @staticmethod
-    def __create_ingredients_amounts(ingredients, recipe):
+    def __create_ingredients_amounts(ingredients,):
         IngredientInRecipe.objects.bulk_create(
             [IngredientInRecipe(
                 ingredient=get_object_or_404(
                     Ingredient,
                     id=ingredient['id']
                 ),
-                recipe=recipe,
                 amount=ingredient['amount']
             ) for ingredient in ingredients]
         )
