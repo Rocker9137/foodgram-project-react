@@ -245,24 +245,22 @@ class RecipeWriteSerializer(ModelSerializer):
             })
         return value
 
-    def create_ingredients_amounts(self, ingredients, recipe):
-        """Создание связи между ингредиентами и рецептом."""
-        IngredientInRecipe.objects.bulk_create(
-            [IngredientInRecipe(
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                recipe=recipe,
-                amount=ingredient['amount']
-            ) for ingredient in ingredients]
-        )
-
+    def create_ingredients(self, ingredients):
+        ingredients_list = []
+        for ingredient in ingredients:
+            ingredient_amount, status = (
+                IngredientInRecipe.objects.get_or_create(**ingredient)
+            )
+            ingredients_list.append(ingredient_amount)
+        return ingredients_list
+        
     def create(self, validated_data):
-        """Создание рецепта."""
+        request = self.context.get('request')
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe.ingredients.set(self.create_ingredients(ingredients))
         recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe=recipe,
-                                        ingredients=ingredients)
         return recipe
 
     def update(self, instance, validated_data):
