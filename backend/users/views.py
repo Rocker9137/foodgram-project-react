@@ -31,8 +31,8 @@ class CustomUserViewSet(UserViewSet):
 
         if request.method == 'POST':
             serializer = ShowSubscribeerSerializer(author,
-                                             data=request.data,
-                                             context={"request": request})
+                                                   data=request.data,
+                                                   context={"request": request})
             serializer.is_valid(raise_exception=True)
             Subscribe.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -53,6 +53,6 @@ class CustomUserViewSet(UserViewSet):
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
         serializer = ShowSubscribeerSerializer(pages,
-                                         many=True,
-                                         context={'request': request})
+                                               many=True,
+                                               context={'request': request})
         return self.get_paginated_response(serializer.data)

@@ -4,7 +4,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe,
-                     ShoppingCart, Recipe, Tag, User,)
+                            ShoppingCart, Recipe, Tag, User,)
 from users.models import Subscribe
 
 
@@ -107,7 +107,7 @@ class ListRecipeSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request.user.is_authenticated:
             return ShoppingCart.objects.filter(user=request.user,
-                                           recipe=obj).exists()
+                                               recipe=obj).exists()
         return False
 
 
@@ -195,7 +195,7 @@ class RecipeShortSerializer(serializers.ModelSerializer):
             'name',
             'image',
             'cooking_time'
-        )        
+        )
 
 
 class SubscribeRecipeSerializer(serializers.ModelSerializer):
@@ -273,12 +273,12 @@ class ShoppingCartSerializer(FavoritesSerializer):
     def validate(self, data):
         request = self.context.get('request')
         recipe_id = data['recipe'].id
-        shoppingCart_exists = ShoppingCart.objects.filter(
+        shoppingcart_exists = ShoppingCart.objects.filter(
             user=request.user,
             recipe__id=recipe_id
         ).exists()
 
-        if shoppingCart_exists:
+        if shoppingcart_exists:
             raise serializers.ValidationError(
                 'В списке покупок такой рецепт есть'
             )
