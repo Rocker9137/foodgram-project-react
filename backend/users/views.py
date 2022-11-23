@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.pagination import CustomPagination
-from api.serializers import UserSerializer, ShowSubscribeerSerializer
+from api.serializers import CustomUserSerializer, SubscribeSerializer
 
 from .models import Subscribe
 
@@ -16,7 +16,7 @@ User = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = CustomUserSerializer
     pagination_class = CustomPagination
 
     @action(
@@ -30,10 +30,9 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=author_id)
 
         if request.method == 'POST':
-            serializer = ShowSubscribeerSerializer(author,
-                                                   data=request.data,
-                                                   context={"request": request}
-                                                   )
+            serializer = SubscribeSerializer(author,
+                                             data=request.data,
+                                             context={"request": request})
             serializer.is_valid(raise_exception=True)
             Subscribe.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -53,7 +52,7 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         queryset = User.objects.filter(subscribing__user=user)
         pages = self.paginate_queryset(queryset)
-        serializer = ShowSubscribeerSerializer(pages,
-                                               many=True,
-                                               context={'request': request})
+        serializer = SubscribeSerializer(pages,
+                                         many=True,
+                                         context={'request': request})
         return self.get_paginated_response(serializer.data)

@@ -12,7 +12,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from recipes.models import (
-    Favorite,
+    Favourite,
     Ingredient,
     IngredientInRecipe,
     Recipe,
@@ -25,8 +25,8 @@ from api.permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
 from api.serializers import (
     RecipeShortSerializer,
     IngredientSerializer,
-    ListRecipeSerializer,
-    CreateUpdateRecipeSerializer,
+    RecipeReadSerializer,
+    RecipeWriteSerializer,
     TagSerializer
 )
 
@@ -57,8 +57,8 @@ class RecipeViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
-            return ListRecipeSerializer
-        return CreateUpdateRecipeSerializer
+            return RecipeReadSerializer
+        return RecipeWriteSerializer
 
     @action(
         detail=True,
@@ -67,8 +67,8 @@ class RecipeViewSet(ModelViewSet):
     )
     def favorite(self, request, pk):
         if request.method == 'POST':
-            return self.__add_to(Favorite, request.user, pk)
-        return self.__delete_from(Favorite, request.user, pk)
+            return self.__add_to(Favourite, request.user, pk)
+        return self.__delete_from(Favourite, request.user, pk)
 
     @action(
         detail=True,
