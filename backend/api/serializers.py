@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.db.models import F
+#from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
@@ -135,7 +135,7 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 class RecipeReadSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = IngredientInRecipeWriteSerializer (
+    ingredients = IngredientInRecipeWriteSerializer(
         many=True,
         read_only=True,
     )
