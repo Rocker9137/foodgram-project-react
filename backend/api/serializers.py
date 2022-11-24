@@ -194,37 +194,42 @@ class RecipeWriteSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def create_ingredients_amounts(self, ingredients):
-        """Создание связи между ингредиентами и рецептом."""
-        IngredientInRecipe.objects.bulk_create(
-            [IngredientInRecipe(
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                amount=ingredient['amount']
-            ) for ingredient in ingredients]
-        )
-
     def create(self, validated_data):
-        """Создание рецепта."""
         tags = validated_data.pop('tags')
+        image = validated_data.pop('image')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(image=image, **validated_data)
+        ingredients_list = []
+        for ingredient in ingredients:
+            ingredient_amount, status = (
+                IngredientInRecipe.objects.get_or_create(**ingredient)
+            )
+            ingredients_list.append(ingredient_amount)
+        recipe.ingredients.set(ingredients_list)
         recipe.tags.set(tags)
-        self.create_ingredients_amounts(ingredients=ingredients)
         return recipe
 
     def update(self, instance, validated_data):
-        """Обновление рецепта."""
-        tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        instance = super().update(instance, validated_data)
-        instance.tags.clear()
-        instance.tags.set(tags)
-        instance.ingredients.clear()
-        self.create_ingredients_amounts(recipe=instance,
-                                        ingredients=ingredients)
+        tags = validated_data.pop('tags')
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time',
+            instance.cooking_time
+        )
         instance.save()
+        ingredients_list = []
+        for ingredient in ingredients:
+            ingredient_amount, status = (
+                IngredientInRecipe.objects.get_or_create(**ingredient)
+            )
+            ingredients_list.append(ingredient_amount)
+        instance.ingredients.set(ingredients_list)
+        instance.tags.set(tags)
         return instance
-
+        
     def to_representation(self, instance):
         """Метод представления результатов сериализатора."""
         request = self.context.get('request')
