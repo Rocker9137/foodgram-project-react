@@ -163,13 +163,17 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
     )
     name = SerializerMethodField(read_only=True)
     measurement_unit = SerializerMethodField(read_only=True)
+
     class Meta:
         model = IngredientInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
+
     def _get_ingredient(self, ingredient_id):
         return get_object_or_404(Ingredient, id=ingredient_id)
+
     def get_name(self, amount):
         return self._get_ingredient(amount.ingredient.id).name
+
     def get_measurement_unit(self, amount):
         return self._get_ingredient(amount.ingredient.id).measurement_unit
 
@@ -194,52 +198,6 @@ class RecipeWriteSerializer(ModelSerializer):
             'text',
             'cooking_time',
         )
-
-    def validate_ingredients(self, value):
-        """Проверка на наличие ингредиентов."""
-        if not value:
-            raise ValidationError({
-                'ingredients': 'Нужен хотя бы один ингредиент!'
-            })
-        ingredients_list = []
-        for item in value:
-            ingredient = get_object_or_404(Ingredient, id=item['id'])
-            if ingredient in ingredients_list:
-                raise ValidationError({
-                    'ingredients': 'Ингридиенты не могут повторяться!'
-                })
-            try:
-                amount = int(item['amount'])
-                if amount <= 0:
-                    raise ValidationError({
-                        'ingredients': 'Количество ингредиента должно быть '
-                                       'больше нуля!'
-                    })
-            except ValueError:
-                raise ValidationError({
-                    'ingredients': 'Количество ингредиента должно быть '
-                                   'числом!'
-                })
-            ingredients_list.append(ingredient)
-        return value
-
-    def validate_tags(self, value):
-        """Проверка на наличие тегов."""
-        if not value:
-            raise ValidationError({
-                'tags': 'Нужно выбрать хотя бы один тег!'
-            })
-        for tag in value:
-            if tag not in Tag.objects.all():
-                raise ValidationError({
-                    'tags': 'Тег не найден!'
-                })
-        tags_set = set(value)
-        if len(value) != len(tags_set):
-            raise ValidationError({
-                'tags': 'Теги должны быть уникальными!'
-            })
-        return value
 
     def create_ingredients_amounts(self, ingredients, recipe):
         """Создание связи между ингредиентами и рецептом."""
