@@ -22,6 +22,7 @@ from recipes.models import (
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
+#from api.services import set_shopping_list
 from api.serializers import (
     RecipeShortSerializer,
     IngredientSerializer,
