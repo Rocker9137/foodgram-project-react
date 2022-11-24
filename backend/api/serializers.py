@@ -199,18 +199,21 @@ class RecipeWriteSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        image = validated_data.pop('image')
-        ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(image=image, **validated_data)
+    def create_ingredients(self, ingredients):
         ingredients_list = []
         for ingredient in ingredients:
             ingredient_amount, status = (
                 IngredientInRecipe.objects.get_or_create(**ingredient)
             )
             ingredients_list.append(ingredient_amount)
-        recipe.ingredients.set(ingredients_list)
+        return ingredients_list
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe.ingredients.set(self.create_ingredients(ingredients))
         recipe.tags.set(tags)
         return recipe
 
