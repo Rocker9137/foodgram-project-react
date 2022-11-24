@@ -1,24 +1,21 @@
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.admin import UserAdmin
 
-User = get_user_model()
+from .models import Subscribe, User
 
 
-class UserAdmin(admin.ModelAdmin):
+@admin.register(User)
+class UserAdmin(UserAdmin):
     list_display = (
-        'id',
         'username',
+        'id',
         'email',
         'first_name',
         'last_name',
     )
-    list_display_links = ('email',)
-    search_fields = ('username', 'email',)
-    list_filter = ('username', 'email')
-    empty_value_display = '-пусто-'
+    list_filter = ('email', 'first_name')
 
 
-admin.site.register(User, UserAdmin)
-
-admin.site.unregister(Group)
+@admin.register(Subscribe)
+class SubscribeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'author',)

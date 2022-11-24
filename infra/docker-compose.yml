@@ -1,4 +1,5 @@
 version: '3.3'
+
 services:
 
   db:
@@ -7,6 +8,7 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ./.env
+    restart: always
 
   backend:
     image: rocker9137/foodgram-backend:latest
@@ -14,35 +16,36 @@ services:
     volumes:
       - static_value:/app/static/
       - media_value:/app/media/
+      - redoc:/app/api/docs/
     depends_on:
       - db
     env_file:
       - ./.env
 
   frontend:
-    image: rocker9137/frontend:latest
+    image: rocker9137/foodgram-frontend:latest
     volumes:
-      - ../frontend:/app/result_build/
-    depends_on:
-      - backend
+      - ../frontend/:/app/result_build/
 
   nginx:
-    image: nginx:1.21.1
+    image: nginx:1.21.3-alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - static_value:/static/
-      - media_value:/media/
+      - ./foodgramproject.crt:/etc/nginx/foodgramproject.crt
+      - ./foodgramproject.key:/etc/nginx/foodgramproject.key
       - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/redoc.html:/usr/share/nginx/html/api/docs/redoc.html
-      - ../docs/openapi-schema.yml:/usr/share/nginx/html/api/docs/openapi-schema.yml
+      - static_value:/var/html/static/
+      - media_value:/var/html/media/
+      - redoc:/usr/share/nginx/html/api/docs/
     depends_on:
-      - frontend
-    env_file:
-      - ./.env
+      - backend
+    restart: always
 
 volumes:
   static_value:
   media_value:
   postgres_data:
+  redoc:
