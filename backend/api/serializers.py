@@ -110,10 +110,28 @@ class TagSerializer(ModelSerializer):
         )
 
 
+class IngredientInRecipeWriteSerializer(ModelSerializer):
+    id = PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all(),
+        source='ingredient'
+    )
+    name = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = IngredientInRecipe
+        fields = ('id', 'name', 'amount',)
+
+    def _get_ingredient(self, ingredient_id):
+        return get_object_or_404(Ingredient, id=ingredient_id)
+
+    def get_name(self, amount):
+        return self._get_ingredient(amount.ingredient.id).name
+
+
 class RecipeReadSerializer(ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
-    ingredients = SerializerMethodField()
+    ingredients = IngredientInRecipeWriteSerializer(many=True, read_only=True)
     image = Base64ImageField()
     is_favorited = SerializerMethodField(read_only=True)
     is_in_shopping_cart = SerializerMethodField(read_only=True)
@@ -138,7 +156,6 @@ class RecipeReadSerializer(ModelSerializer):
         ingredients = recipe.ingredients.values(
             'id',
             'name',
-            'measurement_unit',
             amount=F('ingredientinrecipe__amount')
         )
         return ingredients
@@ -154,28 +171,6 @@ class RecipeReadSerializer(ModelSerializer):
         if user.is_anonymous:
             return False
         return user.shopping_cart.filter(recipe=obj).exists()
-
-
-class IngredientInRecipeWriteSerializer(ModelSerializer):
-    id = PrimaryKeyRelatedField(
-        queryset=Ingredient.objects.all(),
-        source='ingredient'
-    )
-    name = SerializerMethodField(read_only=True)
-    measurement_unit = SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = IngredientInRecipe
-        fields = ('id', 'name', 'amount')
-
-    def _get_ingredient(self, ingredient_id):
-        return get_object_or_404(Ingredient, id=ingredient_id)
-
-    def get_name(self, amount):
-        return self._get_ingredient(amount.ingredient.id).name
-
-    def get_measurement_unit(self, amount):
-        return self._get_ingredient(amount.ingredient.id).measurement_unit
 
 
 class RecipeWriteSerializer(ModelSerializer):
@@ -199,12 +194,11 @@ class RecipeWriteSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def create_ingredients_amounts(self, ingredients, recipe):
+    def create_ingredients_amounts(self, ingredients):
         """Создание связи между ингредиентами и рецептом."""
         IngredientInRecipe.objects.bulk_create(
             [IngredientInRecipe(
                 ingredient=Ingredient.objects.get(id=ingredient['id']),
-                recipe=recipe,
                 amount=ingredient['amount']
             ) for ingredient in ingredients]
         )
@@ -215,8 +209,7 @@ class RecipeWriteSerializer(ModelSerializer):
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe=recipe,
-                                        ingredients=ingredients)
+        self.create_ingredients_amounts(ingredients=ingredients)
         return recipe
 
     def update(self, instance, validated_data):
