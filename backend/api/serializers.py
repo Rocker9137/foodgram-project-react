@@ -229,7 +229,7 @@ class RecipeWriteSerializer(ModelSerializer):
         instance.ingredients.set(ingredients_list)
         instance.tags.set(tags)
         return instance
-        
+ 
     def to_representation(self, instance):
         """Метод представления результатов сериализатора."""
         request = self.context.get('request')
