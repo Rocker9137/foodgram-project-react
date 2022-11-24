@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, RelatedField
 
 from recipes.models import (
     Ingredient,
@@ -167,13 +167,25 @@ class RecipeReadSerializer(ModelSerializer):
         return user.shopping_cart.filter(recipe=obj).exists()
 
 
+class TagListField(RelatedField):
+    """ Сериализатор для получения списка тэгов"""
+
+    def to_representation(self, obj):
+        return {
+            'id': obj.id,
+            'name': obj.name,
+            'color': obj.color,
+            'slug': obj.slug
+        }
+
+
 class RecipeWriteSerializer(ModelSerializer):
     """ Сериализатор для создания и обновления рецептов"""
 
     image = Base64ImageField(max_length=None, use_url=True)
     author = UserSerializer(read_only=True)
     ingredients = IngredientInRecipeSerializer(many=True)
-    tags = TagSerializer(many=True, read_only=True)
+    tags = TagListField(queryset=Tag.objects.all(), many=True)
 
     class Meta:
         model = Recipe

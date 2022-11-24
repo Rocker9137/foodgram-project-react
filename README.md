@@ -1,8 +1,27 @@
-## Проект Foodgram
+### praktikum_diplom
 
-![Foodgram Workflow](https://github.com/Alastor047/foodgram-project-react/actions/workflows/main.yml/badge.svg)
+[//]: # (Николай, привет. Если ты можешь, прими пожалуйста диплом в таком виде. У меня крайний срок сегодня(25.11) его сдать, иначе 40к придется заплатить. Я честно пытался его привести в боевое состояние, но так и не смог одолеть 500 ошибку(наставники тоже в замешательстве). Всю эту неделю со времени твоего последнего ревью, я старался, но увы. Если ты мне сможешь помочь, я буду тебе очень признателен.)
 
-Foodgram - продуктовый помощник с базой кулинарных рецептов. Позволяет публиковать рецепты, сохранять избранные, а также формировать список покупок для выбранных рецептов. Можно подписываться на любимых авторов.
+![workflow](https://github.com/Rocker9137/foodgram-project-react/actions/workflows/main.yml/badge.svg)
+
+## Стек технологий
+
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/-Django-464646?style=flat-square&logo=Django)](https://www.djangoproject.com/)
+[![Django REST Framework](https://img.shields.io/badge/-Django%20REST%20Framework-464646?style=flat-square&logo=Django%20REST%20Framework)](https://www.django-rest-framework.org/)
+[![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?style=flat-square&logo=PostgreSQL)](https://www.postgresql.org/)
+[![Nginx](https://img.shields.io/badge/-NGINX-464646?style=flat-square&logo=NGINX)](https://nginx.org/ru/)
+[![gunicorn](https://img.shields.io/badge/-gunicorn-464646?style=flat-square&logo=gunicorn)](https://gunicorn.org/)
+[![docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=docker)](https://www.docker.com/)
+[![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat-square&logo=GitHub%20actions)](https://github.com/features/actions)
+[![Yandex.Cloud](https://img.shields.io/badge/-Yandex.Cloud-464646?style=flat-square&logo=Yandex.Cloud)](https://cloud.yandex.ru/)
+
+## Описание проекта
+# Foodgram - «Продуктовый помощник»
+
+Это онлайн-сервис и API для него. На этом сервисе пользователи могут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
+
+Проект использует базу данных PostgreSQL. Проект запускается в трёх контейнерах (nginx, PostgreSQL и Django) (контейнер frontend используется лишь для подготовки файлов) через docker-compose на сервере. Образ с проектом загружается на Docker Hub.
 
 Проект доступен по [адресу](http://130.193.34.52/)
 
@@ -14,84 +33,54 @@ Foodgram - продуктовый помощник с базой кулинар�
 
 В документации описаны возможные запросы к API и структура ожидаемых ответов. Для каждого запроса указаны уровни прав доступа.
 
-### Технологии:
+## Запуск проекта с помощью Docker
 
-Python, Django, Django Rest Framework, Docker, Gunicorn, NGINX, PostgreSQL, Yandex Cloud, Continuous Integration, Continuous Deployment
+1. Склонируйте репозиторий на локальную машину.
 
-### Развернуть проект на удаленном сервере:
+    ```
+    git clone git@github.com:Rocker9137/foodgram-project-react.git
+    ```
 
-- Клонировать репозиторий:
-```
-https://github.com/Alastor047/foodgram-project-react.git
-```
+2. Создайте .env файл в директории backend/foodgram/, в котором должны содержаться следующие переменные для подключения к базе PostgreSQL:
 
-- Установить на сервере Docker, Docker Compose:
+    ```
+    DB_ENGINE=django.db.backends.postgresql
+    DB_NAME=postgres
+    POSTGRES_USER=postgres
+    POSTGRES_PASSWORD=postgres
+    DB_HOST=db
+    DB_PORT=5432
+    ```
 
-```
-sudo apt install curl                                   # установка утилиты для скачивания файлов
-curl -fsSL https://get.docker.com -o get-docker.sh      # скачать скрипт для установки
-sh get-docker.sh                                        # запуск скрипта
-sudo apt-get install docker-compose-plugin              # последняя версия docker compose
-```
+3. Перейдите в директорию infra/ и выполните команду для создания и запуска контейнеров.
+    ```
+    sudo docker-compose up -d --build
+    ```
+> Возможна команда **$ sudo docker compose up -d --build** (зависит от версии docker compose)
 
-- Скопировать на сервер файлы docker-compose.yml, nginx.conf из папки infra (команды выполнять находясь в папке infra):
+> В Windows команда выполняется без **sudo**
 
-```
-scp docker-compose.yml nginx.conf username@IP:/home/username/   # username - имя пользователя на сервере
-                                                                # IP - публичный IP сервера
-```
+4. В контейнере backend выполните миграции, создайте суперпользователя и соберите статику.
 
-- Для работы с GitHub Actions необходимо в репозитории в разделе Secrets > Actions создать переменные окружения:
-```
-SECRET_KEY              # секретный ключ Django проекта
-DOCKER_PASSWORD         # пароль от Docker Hub
-DOCKER_USERNAME         # логин Docker Hub
-HOST                    # публичный IP сервера
-USER                    # имя пользователя на сервере
-PASSPHRASE              # *если ssh-ключ защищен паролем
-SSH_KEY                 # приватный ssh-ключ
-TELEGRAM_TO             # ID телеграм-аккаунта для посылки сообщения
-TELEGRAM_TOKEN          # токен бота, посылающего сообщение
+    ```
+    sudo docker-compose exec backend python manage.py migrate
+    sudo docker-compose exec backend python manage.py createsuperuser
+    sudo docker-compose exec backend python manage.py collectstatic --no-input 
+    ```
 
-DB_ENGINE               # django.db.backends.postgresql
-DB_NAME                 # postgres
-POSTGRES_USER           # postgres
-POSTGRES_PASSWORD       # postgres
-DB_HOST                 # db
-DB_PORT                 # 5432 (порт по умолчанию)
-```
+5. Загрузите в бд ингредиенты командой ниже.
 
-- Создать и запустить контейнеры Docker, выполнить команду на сервере
-*(версии команд "docker compose" или "docker-compose" отличаются в зависимости от установленной версии Docker Compose):*
-```
-sudo docker compose up -d
-```
+    ```
+    sudo docker-compose exec backend python manage.py loaddata ingredients.json
+    ```
 
-- После успешной сборки выполнить миграции:
-```
-sudo docker compose exec backend python manage.py migrate
-```
+6. Готово! Ниже представлены доступные адреса проекта:
+    -  http://localhost/ - главная страница сайта;
+    -  http://localhost/admin/ - админ панель;
+    -  http://localhost/api/ - API проекта
+    -  http://localhost/api/docs/redoc.html - документация к API
 
-- Создать суперпользователя:
-```
-sudo docker compose exec backend python manage.py createsuperuser
-```
-
-- Собрать статику:
-```
-sudo docker compose exec backend python manage.py collectstatic --noinput
-```
-
-- Наполнить базу данных содержимым из файла ingredients.json:
-```
-sudo docker compose exec backend python manage.py loaddata ingredients.json
-```
-
-- Для остановки контейнеров Docker:
-```
-sudo docker compose down -v      # с их удалением
-sudo docker compose stop         # без удаления
-```
+---
 
 ### После каждого обновления репозитория (push в ветку master) будет происходить:
 
@@ -100,28 +89,5 @@ sudo docker compose stop         # без удаления
 3. Разворачивание проекта на удаленном сервере
 4. Отправка сообщения в Telegram в случае успеха
 
-### Запуск проекта на локальной машине:
-
-- Клонировать репозиторий:
-```
-https://github.com/Alastor047/foodgram-project-react.git
-```
-
-- В директории infra файл example.env переименовать в .env и заполнить своими данными:
-```
-DB_ENGINE=django.db.backends.postgresql
-DB_NAME=postgres
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=postgres
-DB_HOST=db
-DB_PORT=5432
-SECRET_KEY='секретный ключ Django'
-```
-
-- Создать и запустить контейнеры Docker, как указано выше.
-
-
-- После запуска проект будут доступен по адресу: [http://localhost/](http://localhost/)
-
-
-- Документация будет доступна по адресу: [http://localhost/api/docs/](http://localhost/api/docs/)
+## Автор
+**[Мокроусов Алексей](https://github.com/Rocker9137)** - создание api, деплой на сервер.

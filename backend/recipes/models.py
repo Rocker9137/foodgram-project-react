@@ -43,7 +43,7 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField('Название', db_index=True, max_length=50)
+    name = models.CharField('Название', max_length=50)
     author = models.ForeignKey(
         User,
         related_name='recipes',
