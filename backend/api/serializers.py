@@ -166,7 +166,7 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'name', 'measurement_unit', 'amount')
+        fields = ('id', 'name', 'amount')
 
     def _get_ingredient(self, ingredient_id):
         return get_object_or_404(Ingredient, id=ingredient_id)
